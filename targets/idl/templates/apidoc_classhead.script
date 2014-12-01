@@ -1,0 +1,9 @@
+[
+    WillBeGarbageCollected,
+    Constructor,
+    NoInterfaceObject
+#if len($current_class.parents) == 0
+] interface ${current_class.target_class_name}  {
+#else
+] interface ${current_class.target_class_name} : $current_class.parents[0].target_class_name {
+#end if

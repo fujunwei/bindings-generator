@@ -43,6 +43,45 @@ type_map = {
     # cindex.TypeKind.ENUM        : "int"
 }
 
+native_to_webcore_type_map = {
+    "int"                       : "long",
+    "char"                      : "unsigned short",
+    "char*"                     : "String",
+    "unsigned int"              : "unsigned long",
+    "_ccColor4F"                : "ccColor4F",
+    "std::string"               : "String",
+    "ccTMXTileFlags"            : "unsigned short",
+    "_ccColor3B"                : "ccColor3B",
+    "_ccColor4B"                : "ccColor4B",
+    "_ccFontDefinition"         : "ccFontDefinition",
+    "_ccColor3B*"               : "ccColor3B*",
+    "_ccColor4B*"               : "ccColor4B*",
+    "_ccFontDefinition*"        : "ccFontDefinition*",
+    "_ccTexParams*"              : "ccTexParams*",
+    "_ccTexParams"              : "ccTexParams"
+}
+
+native_to_idl_type_map = {
+    "bool"                      : "boolean",
+    "int"                       : "long",
+    "char"                      : "unsigned short",
+    "char*"                     : "DOMString",
+    "const char*"               : "DOMString",
+    "GLchar*"                   : "DOMString",
+    "const GLchar*"             : "DOMString",
+    "unsigned int"              : "unsigned long",
+    "_ccTexParams"              : "ccTexParams",
+    "ccTMXTileFlags_"           : "unsigned short",
+    "_ccColor4F"                : "ccColor4F",
+    "unsigned char"             : "unsigned short",
+    "std::string"               : "DOMString",
+    "ccTMXTileFlags"            : "unsigned short",
+    "_ccColor3B"                : "ccColor3B",
+    "_ccColor4B"                : "ccColor4B",
+    "_ccFontDefinition"         : "ccFontDefinition",
+    "_ccTexParams"              : "ccTexParams"
+}
+
 INVALID_NATIVE_TYPE = "??"
 
 default_arg_type_arr = [
@@ -366,6 +405,29 @@ class NativeType(object):
             return str(tpl).rstrip()
         return "#pragma warning NO CONVERSION TO NATIVE FOR " + self.name + "\n" + convert_opts['level'] * "\t" +  "ok = false"
 
+    def to_webcore_native(self, generator):
+        self_name = self.name
+        if self_name in native_to_webcore_type_map:
+            self_name = native_to_webcore_type_map[self_name]
+        tmp = self_name.replace("*", "").replace("const ", "")
+        if tmp in generator.idl_classes:
+            if not self.is_pointer:
+                return self_name + '*'
+        else:
+            if self_name == 'String':
+                return self_name
+            if self.is_pointer:
+                return "PassRefPtr<Uint8Array>"
+        return self_name
+
+    def to_cocos_native(self):
+        tmp = self.name.replace('const ', '').replace('*', '')
+        if self.is_pointer and tmp == 'char':
+            return '.utf8().data()'
+        elif self.is_pointer :
+            return '.get()->data()'
+        return ''
+
     def to_string(self, generator):
         conversions = generator.config['conversions']
         if conversions.has_key('native_types'):
@@ -457,6 +519,8 @@ class NativeFunction(object):
         self.is_override = False
         self.ret_type = NativeType.from_type(cursor.result_type)
         self.comment = self.get_comment(cursor.getRawComment())
+        self.generator = None
+        self.registration_name = self.func_name
 
         # parse the arguments
         # if self.func_name == "spriteWithFile":
@@ -514,12 +578,27 @@ class NativeFunction(object):
 
         return replaceStr
 
+    def native_type_to_idl(self, type):
+        if type.name in native_to_idl_type_map:
+            return native_to_idl_type_map[type.name]
+        tmp = type.name.replace("*", "").replace("const ", "")
+        ret_type = tmp
+        if tmp in native_to_idl_type_map:
+            ret_type = native_to_idl_type_map[tmp]
+        if not ret_type in self.generator.idl_classes:
+            if type.is_pointer:
+                return 'Uint8Array'
+        return ret_type
+
     def generate_code(self, current_class=None, generator=None, is_override=False):
         gen = current_class.generator if current_class else generator
+        self.generator = gen
         config = gen.config
         tpl = Template(file=os.path.join(gen.target, "templates", "function.h"),
                         searchList=[current_class, self])
         if not is_override:
+            gen.head_file.write(str(tpl))
+        if gen.script_type == "idl" and is_override:
             gen.head_file.write(str(tpl))
         if self.static:
             if config['definitions'].has_key('sfunction'):
@@ -539,7 +618,7 @@ class NativeFunction(object):
                     tpl = Template(config['definitions']['constructor'],
                                     searchList=[current_class, self])
                     self.signature_name = str(tpl)
-            if self.is_constructor and gen.script_type == "spidermonkey" :
+            if self.is_constructor and gen.script_type != "lua" :
                 tpl = Template(file=os.path.join(gen.target, "templates", "constructor.c"),
                                                 searchList=[current_class, self])
             else :
@@ -553,6 +632,9 @@ class NativeFunction(object):
                                       searchList=[current_class, self])
         if gen.script_type == "spidermonkey":
             gen.doc_file.write(str(apidoc_function_script))
+        if gen.script_type == "idl":
+            if not self.is_constructor:
+                gen.doc_file.write(str(apidoc_function_script))
         else:
             if gen.script_type == "lua" and current_class != None :
                 current_class.doc_func_file.write(str(apidoc_function_script))
@@ -565,6 +647,8 @@ class NativeOverloadedFunction(object):
         self.signature_name = self.func_name
         self.min_args = 100
         self.is_constructor = False
+        self.generator = None
+        self.registration_name = func_array[0].registration_name
         for m in func_array:
             self.min_args = min(self.min_args, m.min_args)
 
@@ -602,13 +686,28 @@ class NativeOverloadedFunction(object):
         self.min_args = min(self.min_args, func.min_args)
         self.implementations.append(func)
 
+    def native_type_to_idl(self, type):
+        if type.name in native_to_idl_type_map:
+            return native_to_idl_type_map[type.name]
+        tmp = type.name.replace("*", "").replace("const ", "")
+        ret_type = tmp
+        if tmp in native_to_idl_type_map:
+            ret_type = native_to_idl_type_map[tmp]
+        if not ret_type in self.generator.idl_classes:
+            if type.is_pointer:
+                return 'Uint8Array'
+        return ret_type
+
     def generate_code(self, current_class=None, is_override=False):
         gen = current_class.generator
+        self.generator = gen
         config = gen.config
         static = self.implementations[0].static
         tpl = Template(file=os.path.join(gen.target, "templates", "function.h"),
                         searchList=[current_class, self])
         if not is_override:
+            gen.head_file.write(str(tpl))
+        if gen.script_type == "idl" and is_override:
             gen.head_file.write(str(tpl))
         if static:
             if config['definitions'].has_key('sfunction'):
@@ -641,12 +740,11 @@ class NativeOverloadedFunction(object):
                                       searchList=[current_class, self])
                 current_class.doc_func_file.write(str(apidoc_function_overload_script))
             else:
-                if gen.script_type == "spidermonkey":
-                    apidoc_function_overload_script = Template(file=os.path.join(gen.target,
+                apidoc_function_overload_script = Template(file=os.path.join(gen.target,
                                                         "templates",
                                                         "apidoc_function_overload.script"),
                                       searchList=[current_class, self])
-                    gen.doc_file.write(str(apidoc_function_overload_script))
+                gen.doc_file.write(str(apidoc_function_overload_script))                    
 
 
 class NativeClass(object):
@@ -840,6 +938,7 @@ class NativeClass(object):
             if self._current_visibility == cindex.AccessSpecifierKind.PUBLIC and not cursor.type.is_function_variadic():
                 m = NativeFunction(cursor)
                 registration_name = self.generator.should_rename_function(self.class_name, m.func_name) or m.func_name
+                m.registration_name = registration_name
                 # bail if the function is not supported (at least one arg not supported)
                 if m.not_supported:
                     return False
@@ -907,6 +1006,7 @@ class Generator(object):
         self.prefix = opts['prefix']
         self.headers = opts['headers'].split(' ')
         self.classes = opts['classes']
+        self.idl_classes = opts['idl_classes']
         self.classes_need_extend = opts['classes_need_extend']
         self.classes_have_no_parents = opts['classes_have_no_parents'].split(' ')
         self.base_classes_to_skip = opts['base_classes_to_skip'].split(' ')
@@ -926,6 +1026,7 @@ class Generator(object):
         self.script_control_cpp = opts['script_control_cpp'] == "yes"
         self.script_type = opts['script_type']
         self.macro_judgement = opts['macro_judgement']
+        self.current_class = None
 
         extend_clang_args = []
 
@@ -1018,6 +1119,14 @@ class Generator(object):
                 return True
         return False
 
+    def in_listed_idl_classes(self, class_name):
+        """
+        returns True if the class is in the list of required classes and it's not in the skip list
+        """
+        if class_name in self.idl_classes:
+            return True
+        return False
+
     def in_listed_extend_classed(self, class_name):
         """
         returns True if the class is in the list of required classes that need to extend
@@ -1053,23 +1162,22 @@ class Generator(object):
             sorted_parents.append(nclass.class_name)
         return sorted_parents
 
-    def generate_code(self):
-        # must read the yaml file first
-        stream = file(os.path.join(self.target, "conversions.yaml"), "r")
-        data = yaml.load(stream)
-        self.config = data
-        implfilepath = os.path.join(self.outdir, self.out_file + ".cpp")
-        headfilepath = os.path.join(self.outdir, self.out_file + ".hpp")
+    def _generate_head(self, name):
+        implfilepath = os.path.join(self.outdir, name + ".cpp")
+        headfilepath = ""
 
-        docfiledir   = self.outdir + "/api"
-        if not os.path.exists(docfiledir):
-            os.makedirs(docfiledir)
-
-        if self.script_type == "lua":
-            docfilepath = os.path.join(docfiledir, self.out_file + "_api.lua")
+        if self.script_type != "idl":
+            headfilepath = os.path.join(self.outdir, name + ".hpp")
+            docfiledir   = self.outdir + "/api"
+            if not os.path.exists(docfiledir):
+                os.makedirs(docfiledir)
+            if self.script_type == "lua":
+                docfilepath = os.path.join(docfiledir, name + "_api.lua")
+            else:
+                docfilepath = os.path.join(docfiledir, name + "_api.js")
         else:
-            docfilepath = os.path.join(docfiledir, self.out_file + "_api.js")
-        
+            headfilepath = os.path.join(self.outdir, name + ".h")
+            docfilepath = os.path.join(self.outdir, name + ".idl")
         self.impl_file = open(implfilepath, "w+")
         self.head_file = open(headfilepath, "w+")
         self.doc_file = open(docfilepath, "w+")
@@ -1078,14 +1186,14 @@ class Generator(object):
                             searchList=[self])
         layout_c = Template(file=os.path.join(self.target, "templates", "layout_head.c"),
                             searchList=[self])
-        apidoc_ns_script = Template(file=os.path.join(self.target, "templates", "apidoc_ns.script"),
-                                searchList=[self])
         self.head_file.write(str(layout_h))
         self.impl_file.write(str(layout_c))
-        self.doc_file.write(str(apidoc_ns_script))
+        if self.script_type != "idl":
+            apidoc_ns_script = Template(file=os.path.join(self.target, "templates", "apidoc_ns.script"),
+                                searchList=[self])
+            self.doc_file.write(str(apidoc_ns_script))
 
-        self._parse_headers()
-
+    def _generate_foot(self):
         layout_h = Template(file=os.path.join(self.target, "templates", "layout_foot.h"),
                             searchList=[self])
         layout_c = Template(file=os.path.join(self.target, "templates", "layout_foot.c"),
@@ -1100,6 +1208,20 @@ class Generator(object):
         self.impl_file.close()
         self.head_file.close()
         self.doc_file.close()
+
+    def generate_code(self):
+        # must read the yaml file first
+        stream = file(os.path.join(self.target, "conversions.yaml"), "r")
+        data = yaml.load(stream)
+        self.config = data
+
+        if self.script_type != "idl":
+            self._generate_head(self.out_file);
+
+        self._parse_headers()
+
+        if self.script_type != "idl":
+            self._generate_foot()
 
     def _pretty_print(self, diagnostics):
         print("====\nErrors in parsing headers:")
@@ -1135,11 +1257,13 @@ class Generator(object):
                         if namespaced_name.startswith(ns):
                             is_targeted_class = True
                             break
-
                 if is_targeted_class and self.in_listed_classes(cursor.displayname):
                     if not self.generated_classes.has_key(cursor.displayname):
                         nclass = NativeClass(cursor, self)
+                        self.current_class = nclass
+                        self._generate_head(nclass.class_name)
                         nclass.generate_code()
+                        self._generate_foot()
                         self.generated_classes[cursor.displayname] = nclass
                     return
 
@@ -1392,6 +1516,7 @@ def main():
                 'prefix': config.get(s, 'prefix'),
                 'headers':    (config.get(s, 'headers'        , 0, dict(userconfig.items('DEFAULT')))),
                 'classes': config.get(s, 'classes').split(' '),
+                'idl_classes': config.get(s, 'idl_classes').split(' '),
                 'classes_need_extend': config.get(s, 'classes_need_extend').split(' ') if config.has_option(s, 'classes_need_extend') else [],
                 'clang_args': (config.get(s, 'extra_arguments', 0, dict(userconfig.items('DEFAULT'))) or "").split(" "),
                 'target': os.path.join(workingdir, "targets", t),
