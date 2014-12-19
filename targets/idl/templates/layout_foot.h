@@ -8,6 +8,15 @@ protected:
 public:
     $(current_class.target_class_name) ();
 };
-}
+
+#if len($current_class.parents) != 0
+#for $parent in $current_class.parents
+	#set $parent_name = parent.target_class_name
+DEFINE_TYPE_CASTS($(current_class.target_class_name), $parent_name, p$(current_class.target_class_name), true, true);
+	#break
+#end for
+#end if
+
+} // namespace blink
 
 #endif
