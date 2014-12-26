@@ -6,6 +6,7 @@
 \#include "wtf/Forward.h"
 \#include "wtf/RefCounted.h"
 \#include "wtf/RefPtr.h"
+\#include "wtf/Uint8Array.h"
 
 ##//#include "modules/cocos2d/cocos2d.hpp"
 

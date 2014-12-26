@@ -68,9 +68,9 @@
     $ret_type_name ${signature_name}($arglist) {
 $arg_wrapper
         #if $ret_type.name == "void"
-        m_cocos2d_impl->${func_name}($arg_wrapper_call);
+        ((cocos2d::$class_name*)(m_cocos2d_impl.get()))->${func_name}($arg_wrapper_call);
         #else
-        $ret_impl_type ret_impl = m_cocos2d_impl->${func_name}($arg_wrapper_call);
+        $ret_impl_type ret_impl = ((cocos2d::$class_name*)(m_cocos2d_impl.get()))->${func_name}($arg_wrapper_call);
         $ret_cocos_instance
         $ret_cocos_instance_2
         $ret_cocos_instance_3
