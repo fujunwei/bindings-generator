@@ -55,13 +55,13 @@
 #set $ret_cocos_instance_2 = ""
 #set $ret_cocos_instance_3 = ""
 #if $generator.in_listed_idl_classes($ret_impl_type)
-    #set $ret_cocos_instance = $ret_impl_type + " *ret = new " + $ret_impl_type+"();"
+    #set $ret_cocos_instance = 'RefPtr' + '<' + $ret_impl_type + '>' + " ret = adoptRefWillBeNoop(new " + $ret_impl_type+"());"
     #set $ret_impl_type = "cocos2d::"+$ret_impl_type
     #set $ret_cocos_instance_2 = "ret->setCocos2dImpl(ret_impl);"
     #if $ret_type.is_pointer
         #set ret_impl_type = ret_impl_type + "*"
     #end if
-    #set $ret_cocos_instance_3 = "return ret;"
+    #set $ret_cocos_instance_3 = "return ret.release();"
 #else
     #set $ret_impl_type = $ret_type.to_webcore_native($generator)
     #set $ret_cocos_instance_3 = "return ret_impl;"
@@ -74,6 +74,10 @@
 ## Auto gen function
 ##
 #set $ret_type_name = $ret_type.to_webcore_native($generator)
+#set $tmp = $ret_type_name.replace("const ", "").replace("*", "")
+#if $generator.in_listed_idl_classes($tmp)
+    #set $ret_type_name = 'PassRefPtrWillBeRawPtr' + '<' + $tmp + '>'
+#end if
     $ret_type_name ${signature_name}($arglist) {
 $arg_wrapper
         #if $ret_type.name == "void"

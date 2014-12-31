@@ -29,6 +29,10 @@
         #set $index = $index + 1
     #end for
 #set $ret_type_name = $ret_type.to_webcore_native($generator)
+#set $tmp = $ret_type_name.replace("const ", "").replace("*", "")
+#if $generator.in_listed_idl_classes($tmp)
+    #set $ret_type_name = 'PassRefPtrWillBeRawPtr' + '<' + $tmp + '>'
+#end if
 #if $func.static
     static $ret_type_name ${registration_name}($arglist);
 #else
