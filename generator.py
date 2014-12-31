@@ -1131,6 +1131,7 @@ class Generator(object):
         """
         returns True if the class is in the list of required classes that need to extend
         """
+        class_name = class_name.replace("*","").replace("const ", "")
         for key in self.classes_need_extend:
             md = re.match("^" + key + "$", class_name)
             if md:

@@ -15,9 +15,18 @@
     #set $length = len($arguments)
     #set $index = 0
     #for $arg in $arguments
-        #set $arglist = $arglist + $arg.to_webcore_native($generator)
-        #set $arglist = $arglist + ' arg' + str(index)
-        #set $arglist_call = $arglist_call + ' arg' + str(index)
+        #set $arg_tmp = $arg.to_webcore_native($generator)
+        #if $generator.in_listed_extend_classed($arg_tmp)
+            #set $arglist = $arglist + 'ScriptValue&'
+            #set $arglist = $arglist + ' arg' + str(index) + '_wrapper'
+            #set $arglist_call = $arglist_call + ' arg' + str(index) + '_wrapper'
+            #set $tmp = $arg_tmp.replace("*","").replace("const ", "")
+            #set arg_wrapper = $arg_wrapper + '        SCRIPT_VALUE_WRAPPER('+tmp+', '+'arg'+str(index)+'_wrapper, '+'arg'+str(index)+');\n'
+        #else
+            #set $arglist = $arglist + $arg_tmp
+            #set $arglist = $arglist + ' arg' + str(index)
+            #set $arglist_call = $arglist_call + ' arg' + str(index)
+        #end if
         ##argument wrapper
         #set tmp = $arg.to_webcore_native($generator).replace("const ", "").replace("*", "")
         #if $generator.in_listed_idl_classes($tmp)

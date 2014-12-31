@@ -7,17 +7,15 @@
 #end if
 #for $func in $implementations
 #set $arguments = $func.arguments
-#if $registration_name == "create"
-    #if len($arguments) == 0
-    #continue
-    #end if
-#end if
 #set $ret_type = $func.ret_type
 #set arglist = ''
     #set $length = len($arguments)
     #set $index = 0
     #for $arg in $arguments
         #set $argname = $native_type_to_idl($arg)
+        #if $generator.in_listed_extend_classed($argname)
+            #set $argname = 'any'
+        #end if
         #set $arglist = $arglist + $argname
         #set $arglist = $arglist + ' arg' + str(index)
         #if $index < $length - 1 
@@ -26,5 +24,9 @@
         #set $index = $index + 1
     #end for
 #set $retname = $native_type_to_idl($ret_type)
+#if $func.static
+    static $retname ${registration_name}($arglist);
+#else
     $retname ${registration_name}($arglist);
+#end if
 #end for

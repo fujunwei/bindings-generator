@@ -12,6 +12,12 @@
         #end if
     }
 
+#set generator = $current_class.generator
+#if $generator.in_listed_extend_classed($current_class.class_name) and not $current_class.is_abstract
+    void V8$current_class.target_class_name::ctorMethodCustom(const v8::FunctionCallbackInfo<v8::Value>& info) {
+        //TODO: add proxy
+    }
+#end if
     ##void $current_class.target_class_name::setCocos2dImpl(cocos2d::$current_class.target_class_name impl) {
     ##    m_cocos2d_impl = new cocos2d::$(current_class.target_class_name)(impl);
     ##}
