@@ -57,8 +57,9 @@ native_to_webcore_type_map = {
     "_ccColor3B*"               : "ccColor3B*",
     "_ccColor4B*"               : "ccColor4B*",
     "_ccFontDefinition*"        : "ccFontDefinition*",
-    "_ccTexParams*"              : "ccTexParams*",
-    "_ccTexParams"              : "ccTexParams"
+    "_ccTexParams*"             : "ccTexParams*",
+    "_ccTexParams"              : "ccTexParams",
+    "ResolutionPolicy"          : "long"
 }
 
 native_to_idl_type_map = {
@@ -79,7 +80,8 @@ native_to_idl_type_map = {
     "_ccColor3B"                : "ccColor3B",
     "_ccColor4B"                : "ccColor4B",
     "_ccFontDefinition"         : "ccFontDefinition",
-    "_ccTexParams"              : "ccTexParams"
+    "_ccTexParams"              : "ccTexParams",
+    "ResolutionPolicy"          : "long"
 }
 
 INVALID_NATIVE_TYPE = "??"
