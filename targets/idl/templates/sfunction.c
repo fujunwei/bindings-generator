@@ -60,7 +60,10 @@
 #set $ret_cocos_instance_2 = ""
 #set $ret_cocos_instance_3 = ""
 #if $generator.in_listed_idl_classes($ret_impl_type)
-    #set $ret_cocos_instance = 'RefPtr' + '<' + $ret_impl_type + '>' + " ret = adoptRefWillBeNoop(new " + $ret_impl_type+"());"
+    #if $ret_type.is_pointer
+    #set $ret_cocos_instance = "if (ret_impl == nullptr) { return nullptr; }"
+    #end if
+    #set $ret_cocos_instance = ret_cocos_instance + '\n' + '        RefPtr' + '<' + $ret_impl_type + '>' + " ret = adoptRefWillBeNoop(new " + $ret_impl_type+"());"
     #set $ret_impl_type = "cocos2d::"+$ret_impl_type
     #set $ret_cocos_instance_2 = "ret->setCocos2dImpl(ret_impl);"
     #if $ret_type.is_pointer
