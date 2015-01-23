@@ -44,10 +44,10 @@ type_map = {
 }
 
 native_to_webcore_type_map = {
-    "int"                       : "long",
+    "int"                       : "int",
     "char"                      : "unsigned short",
     "char*"                     : "String",
-    "unsigned int"              : "unsigned long",
+    "unsigned int"              : "unsigned int",
     "_ccColor4F"                : "ccColor4F",
     "std::string"               : "String",
     "ccTMXTileFlags"            : "unsigned short",
@@ -59,18 +59,18 @@ native_to_webcore_type_map = {
     "_ccFontDefinition*"        : "ccFontDefinition*",
     "_ccTexParams*"             : "ccTexParams*",
     "_ccTexParams"              : "ccTexParams",
-    "ResolutionPolicy"          : "long"
+    "ResolutionPolicy"          : "int"
 }
 
 native_to_idl_type_map = {
     "bool"                      : "boolean",
-    "int"                       : "long",
+    "int"                       : "short",
     "char"                      : "unsigned short",
     "char*"                     : "DOMString",
     "const char*"               : "DOMString",
     "GLchar*"                   : "DOMString",
     "const GLchar*"             : "DOMString",
-    "unsigned int"              : "unsigned long",
+    "unsigned int"              : "unsigned short",
     "_ccTexParams"              : "ccTexParams",
     "ccTMXTileFlags_"           : "unsigned short",
     "_ccColor4F"                : "ccColor4F",
@@ -81,7 +81,7 @@ native_to_idl_type_map = {
     "_ccColor4B"                : "ccColor4B",
     "_ccFontDefinition"         : "ccFontDefinition",
     "_ccTexParams"              : "ccTexParams",
-    "ResolutionPolicy"          : "long"
+    "ResolutionPolicy"          : "short"
 }
 
 INVALID_NATIVE_TYPE = "??"
