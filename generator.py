@@ -408,6 +408,8 @@ class NativeType(object):
         return "#pragma warning NO CONVERSION TO NATIVE FOR " + self.name + "\n" + convert_opts['level'] * "\t" +  "ok = false"
 
     def to_webcore_native(self, generator):
+        if self.is_enum:
+            return "int"
         self_name = self.name
         if self_name in native_to_webcore_type_map:
             self_name = native_to_webcore_type_map[self_name]
@@ -581,6 +583,8 @@ class NativeFunction(object):
         return replaceStr
 
     def native_type_to_idl(self, type):
+        if type.is_enum:
+            return "short"
         if type.name in native_to_idl_type_map:
             return native_to_idl_type_map[type.name]
         tmp = type.name.replace("*", "").replace("const ", "")
@@ -689,6 +693,8 @@ class NativeOverloadedFunction(object):
         self.implementations.append(func)
 
     def native_type_to_idl(self, type):
+        if type.is_enum:
+            return "short"
         if type.name in native_to_idl_type_map:
             return native_to_idl_type_map[type.name]
         tmp = type.name.replace("*", "").replace("const ", "")

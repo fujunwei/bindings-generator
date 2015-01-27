@@ -43,7 +43,7 @@
                 #set $arg_wrapper_call = $arg_wrapper_call + ' *_arg' + str(index)
             #end if
         #else
-            #set $arg_wrapper_call = $arg_wrapper_call + ' arg' + str(index) + $arg.to_cocos_native()
+            #set $arg_wrapper_call = $arg_wrapper_call + '(' + arg.namespaced_name + ')' +'(arg' + str(index) + $arg.to_cocos_native() + ')'
         #end if
         #if $index < $length - 1 
             #set $arglist = $arglist + ', '
