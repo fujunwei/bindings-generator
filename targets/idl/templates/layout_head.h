@@ -19,7 +19,8 @@ namespace cocos2d {
 namespace blink {
 
 #if len($current_class.parents) == 0
-class $(current_class.target_class_name) : public RefCountedWillBeGarbageCollectedFinalized <$(current_class.target_class_name)>, public ScriptWrappable {
+##class $(current_class.target_class_name) : public RefCountedWillBeGarbageCollectedFinalized <$(current_class.target_class_name)>, public ScriptWrappable {
+class $(current_class.target_class_name) : public CCObject {
 #else
 class $(current_class.target_class_name) 
 #for $parent in $current_class.parents
