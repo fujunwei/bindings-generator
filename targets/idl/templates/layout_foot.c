@@ -23,9 +23,7 @@
         #if not $current_class.is_abstract
         m_cocos2d_impl = new cocos2d::${current_class.target_class_name}();
         m_cocos2d_impl->retain();
-        #if $generator.in_listed_extend_classed($current_class.class_name) and not $current_class.is_abstract
         m_cocos2d_impl->setCrosswalkImpl((CCObject*)this);
-        #end if
         #end if
     }
 
