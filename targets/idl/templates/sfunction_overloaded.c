@@ -60,16 +60,21 @@
 #set $ret_cocos_instance_2 = ""
 #set $ret_cocos_instance_3 = ""
 #if $generator.in_listed_idl_classes($ret_impl_type)
-    #if $ret_type.is_pointer
-    #set $ret_cocos_instance = "if (ret_impl == nullptr) { return nullptr; }"
+    #if $generator.in_listed_extend_classed($ret_impl_type) and not $func.static
+        #set $ret_cocos_instance = "if (ret_impl == NULL) { return ScriptValue(); }"
+        #set $ret_cocos_instance_2 = 'RET_V8_WRAPPER(ret_impl, ' + $ret_impl_type +')'
+    #else
+        #if $ret_type.is_pointer
+        #set $ret_cocos_instance = "if (ret_impl == nullptr) { return nullptr; }"
+        #end if
+        #set $ret_cocos_instance = ret_cocos_instance + '\n' + '        RefPtr' + '<' + $ret_impl_type + '>' + " ret = adoptRefWillBeNoop(new " + $ret_impl_type+"());"
+        #set $ret_cocos_instance_2 = "ret->setCocos2dImpl(ret_impl);"
+        #set $ret_cocos_instance_3 = "return ret.release();"
     #end if
-    #set $ret_cocos_instance = ret_cocos_instance + '\n' + '        RefPtr' + '<' + $ret_impl_type + '>' + " ret = adoptRefWillBeNoop(new " + $ret_impl_type+"());"
-    #set $ret_impl_type = "cocos2d::"+$ret_impl_type
-    #set $ret_cocos_instance_2 = "ret->setCocos2dImpl(ret_impl);"
-    #if $ret_type.is_pointer
-        #set ret_impl_type = ret_impl_type + "*"
-    #end if
-    #set $ret_cocos_instance_3 = "return ret.release();"
+        #set $ret_impl_type = "cocos2d::"+$ret_impl_type
+        #if $ret_type.is_pointer
+            #set ret_impl_type = ret_impl_type + "*"
+        #end if
 #else
     #set $ret_impl_type = $ret_type.to_webcore_native($generator)
     #set $ret_cocos_instance_3 = "return ret_impl;"
@@ -83,9 +88,20 @@
 #set $ret_type_name = $ret_type.to_webcore_native($generator)
 #set $tmp = $ret_type_name.replace("const ", "").replace("*", "")
 #if $generator.in_listed_idl_classes($tmp)
-    #set $ret_type_name = 'PassRefPtrWillBeRawPtr' + '<' + $tmp + '>'
+    #if $generator.in_listed_extend_classed($tmp) and not $func.static
+        #set $ret_type_name = 'ScriptValue'
+    #else
+        #set $ret_type_name = 'PassRefPtrWillBeRawPtr' + '<' + $tmp + '>'
+    #end if
 #end if
-    $ret_type_name ${signature_name}($arglist) {
+#set $prefix = ''
+#if $ret_type_name == 'ScriptValue'
+#set $prefix = 'ScriptState* scriptState'
+#if len($arguments)
+    #set $prefix = $prefix + ', '
+#end if
+#end if
+    $ret_type_name ${signature_name}($prefix$arglist) {
 $arg_wrapper
         #if $ret_type.name == "void"
         cocos2d::$class_name::${func_name}($arg_wrapper_call);

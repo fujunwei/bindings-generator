@@ -31,11 +31,22 @@
 #set $ret_type_name = $ret_type.to_webcore_native($generator)
 #set $tmp = $ret_type_name.replace("const ", "").replace("*", "")
 #if $generator.in_listed_idl_classes($tmp)
-    #set $ret_type_name = 'PassRefPtrWillBeRawPtr' + '<' + $tmp + '>'
+    #if $generator.in_listed_extend_classed($tmp) and not $func.static
+        #set $ret_type_name = 'ScriptValue'
+    #else
+        #set $ret_type_name = 'PassRefPtrWillBeRawPtr' + '<' + $tmp + '>'
+    #end if
+#end if
+#set $prefix = ''
+#if $ret_type_name == 'ScriptValue'
+#set $prefix = 'ScriptState* scriptState'
+#if len($arguments)
+    #set $prefix = $prefix + ', '
+#end if
 #end if
 #if $func.static
     static $ret_type_name ${registration_name}($arglist);
 #else
-    $ret_type_name ${registration_name}($arglist);
+    $ret_type_name ${registration_name}($prefix$arglist);
 #end if
 #end for

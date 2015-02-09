@@ -582,7 +582,7 @@ class NativeFunction(object):
 
         return replaceStr
 
-    def native_type_to_idl(self, type):
+    def native_type_to_idl(self, type, is_need_dynamic_wrap=True):
         if type.is_enum:
             return "short"
         if type.name in native_to_idl_type_map:
@@ -594,6 +594,8 @@ class NativeFunction(object):
         if not ret_type in self.generator.idl_classes:
             if type.is_pointer:
                 return 'Uint8Array'
+        if is_need_dynamic_wrap and self.generator.in_listed_extend_classed(ret_type):
+            return 'any'
         return ret_type
 
     def generate_code(self, current_class=None, generator=None, is_override=False):
@@ -692,7 +694,7 @@ class NativeOverloadedFunction(object):
         self.min_args = min(self.min_args, func.min_args)
         self.implementations.append(func)
 
-    def native_type_to_idl(self, type):
+    def native_type_to_idl(self, type, is_need_dynamic_wrap=True):
         if type.is_enum:
             return "short"
         if type.name in native_to_idl_type_map:
@@ -704,6 +706,8 @@ class NativeOverloadedFunction(object):
         if not ret_type in self.generator.idl_classes:
             if type.is_pointer:
                 return 'Uint8Array'
+        if is_need_dynamic_wrap and self.generator.in_listed_extend_classed(ret_type):
+            return 'any'
         return ret_type
 
     def generate_code(self, current_class=None, is_override=False):

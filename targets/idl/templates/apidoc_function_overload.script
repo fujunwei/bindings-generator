@@ -24,9 +24,14 @@
         #set $index = $index + 1
     #end for
 #set $retname = $native_type_to_idl($ret_type)
+#set $prefix = ''
+#if $retname == 'any'
+    #set $prefix = '[CallWith=ScriptState] '
+#end if
 #if $func.static
+    #set $retname = $native_type_to_idl($ret_type, False)
     static $retname ${registration_name}($arglist);
 #else
-    $retname ${registration_name}($arglist);
+    $prefix$retname ${registration_name}($arglist);
 #end if
 #end for
