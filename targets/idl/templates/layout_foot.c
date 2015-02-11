@@ -8,6 +8,9 @@
         }
         m_cocos2d_impl = impl;
         impl->retain();
+#if (not $current_class.is_abstract) and ($current_class.class_name != 'CCEGLView')
+        m_cocos2d_impl->setCrosswalkImpl((CCObject*)this);
+#end if
     }
 
 #set generator = $current_class.generator
