@@ -33,7 +33,4 @@ class $(current_class.target_class_name)
     DEFINE_WRAPPERTYPEINFO();
 public:
     void trace(Visitor*) {}
-    static PassRefPtrWillBeRawPtr<$(current_class.target_class_name)> create()
-    {
-        return adoptRefWillBeNoop(new $(current_class.target_class_name)());
-    }
+    static PassRefPtrWillBeRawPtr<$(current_class.target_class_name)> create();

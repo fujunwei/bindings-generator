@@ -3,31 +3,42 @@
     }
 
     void $current_class.target_class_name::setCocos2dImpl(cocos2d::$current_class.target_class_name* impl) {
-        if (m_cocos2d_impl != NULL) {
-            m_cocos2d_impl->release();
-        }
+        ## if (m_cocos2d_impl != NULL) {
+        ##    m_cocos2d_impl->release();
+        ## }
         m_cocos2d_impl = impl;
+#if $current_class.class_name != 'CCEGLView' and $current_class.class_name != 'CCEGLViewProtocol'
         impl->retain();
-#if (not $current_class.is_abstract) and ($current_class.class_name != 'CCEGLView')
         m_cocos2d_impl->setCrosswalkImpl((CCObject*)this);
 #end if
     }
 
 #set generator = $current_class.generator
     $current_class.target_class_name::${current_class.target_class_name}() {
-        #if len($current_class.parents) == 0
+        ## #if len($current_class.parents) == 0
+        ## m_cocos2d_impl = NULL;
+        ## #else
+        ## if (m_cocos2d_impl != NULL) {
+        ##     m_cocos2d_impl->release();
+        ##     m_cocos2d_impl = NULL;
+        ## }
+        ## #end if
+        ## #if not $current_class.is_abstract
+        ## m_cocos2d_impl = new cocos2d::${current_class.target_class_name}();
+        ## m_cocos2d_impl->retain();
+        ## m_cocos2d_impl->setCrosswalkImpl((CCObject*)this);
+        ## #end if
         m_cocos2d_impl = NULL;
-        #else
-        if (m_cocos2d_impl != NULL) {
-            m_cocos2d_impl->release();
-            m_cocos2d_impl = NULL;
-        }
-        #end if
+    }
+
+    PassRefPtrWillBeRawPtr<$(current_class.target_class_name)> $current_class.target_class_name::create()
+    {
+        RefPtrWillBeRawPtr<$(current_class.target_class_name)> ret = adoptRefWillBeNoop(new $(current_class.target_class_name)());
         #if not $current_class.is_abstract
-        m_cocos2d_impl = new cocos2d::${current_class.target_class_name}();
-        m_cocos2d_impl->retain();
-        m_cocos2d_impl->setCrosswalkImpl((CCObject*)this);
+        cocos2d::${current_class.target_class_name}* impl = new cocos2d::${current_class.target_class_name}();
+        ret->setCocos2dImpl(impl);
         #end if
+        return ret.release();
     }
 
 #if $generator.in_listed_extend_classed($current_class.class_name) and not $current_class.is_abstract
@@ -37,9 +48,9 @@
 
     $current_class.target_class_name::~$(current_class.target_class_name)() {
         if (m_cocos2d_impl != NULL) {
-        #if $generator.in_listed_extend_classed($current_class.class_name) and not $current_class.is_abstract
+#if $current_class.class_name != 'CCEGLView' and $current_class.class_name != 'CCEGLViewProtocol'
              m_cocos2d_impl->setCrosswalkImpl(NULL);
-        #end if
+#end if
              m_cocos2d_impl->release();
              m_cocos2d_impl = NULL;
         }
