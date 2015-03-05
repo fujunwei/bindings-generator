@@ -11,10 +11,18 @@
 ##//#include "modules/cocos2d/cocos2d.hpp"
 
 \#include "modules/cocos2d/cocos2d_class.hpp"
-
+#set namespace = $current_class.namespace_name
+#if $namespace == "cocos2d::"
 namespace cocos2d {
     class $(current_class.target_class_name);
 }
+#else
+namespace cocos2d {
+    namespace extension {
+        class $(current_class.target_class_name);
+    }
+}
+#end if
 
 namespace blink {
 

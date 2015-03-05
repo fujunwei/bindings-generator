@@ -22,6 +22,11 @@
             #set $arglist_call = $arglist_call + ' arg' + str(index) + '_wrapper'
             #set $tmp = $arg_tmp.replace("*","").replace("const ", "")
             #set arg_wrapper = $arg_wrapper + '        SCRIPT_VALUE_WRAPPER('+tmp+', '+'arg'+str(index)+'_wrapper, '+'arg'+str(index)+');\n'
+        #else if $arg.name == "std::string"
+            #set $arglist = $arglist + $arg_tmp
+            #set $arglist = $arglist + ' arg' + str(index) + '_wrapper'
+            #set $arglist_call = $arglist_call + ' arg' + str(index) + '_wrapper'
+            #set arg_wrapper = $arg_wrapper + '        std::string arg' + str(index) + ' = ' + 'std::string(arg'+str(index)+'_wrapper.utf8().data());'
         #else
             #set $arglist = $arglist + $arg_tmp
             #set $arglist = $arglist + ' arg' + str(index)
@@ -31,7 +36,7 @@
         #set tmp = $arg.to_webcore_native($generator).replace("const ", "").replace("*", "")
         #if $generator.in_listed_idl_classes($tmp)
             #set tmp = $tmp + "*"
-            #set arg_wrapper = $arg_wrapper + "        " + "cocos2d::"+tmp+" _arg"+str(index)+" = (cocos2d::"+tmp+")(arg"+str(index)+"->getCocos2dImpl());\n"
+            #set arg_wrapper = $arg_wrapper + "        " + $arg.namespace_name +tmp+" _arg"+str(index)+" = ("+$arg.namespace_name+tmp+")(arg"+str(index)+"->getCocos2dImpl());\n"
             #if $arg.is_pointer
                 #set $arg_wrapper_call = $arg_wrapper_call + ' _arg' + str(index)
             #else
@@ -66,7 +71,7 @@
         #set $ret_cocos_instance_2 = "ret->setCocos2dImpl(ret_impl);"
         #set $ret_cocos_instance_3 = "return ret.release();"
     #end if
-        #set $ret_impl_type = "cocos2d::"+$ret_impl_type
+        #set $ret_impl_type = $ret_type.namespace_name+$ret_impl_type
         #if $ret_type.is_pointer
             #set ret_impl_type = ret_impl_type + "*"
         #end if
@@ -100,9 +105,13 @@
     $ret_type_name ${signature_name}($prefix$arglist) {
 $arg_wrapper
         #if $ret_type.name == "void"
-        ((cocos2d::$class_name*)m_cocos2d_impl)->${func_name}($arg_wrapper_call);
+        (($namespaced_class_name*)m_cocos2d_impl)->${func_name}($arg_wrapper_call);
         #else
-        $ret_impl_type ret_impl = ((cocos2d::$class_name*)m_cocos2d_impl)->${func_name}($arg_wrapper_call);
+        #if $ret_type.namespaced_name == 'std::string'
+        $ret_impl_type ret_impl = String((($namespaced_class_name*)m_cocos2d_impl)->${func_name}($arg_wrapper_call).c_str());
+        #else
+        $ret_impl_type ret_impl = (($namespaced_class_name*)m_cocos2d_impl)->${func_name}($arg_wrapper_call);
+        #end if
         $ret_cocos_instance
         $ret_cocos_instance_2
         $ret_cocos_instance_3

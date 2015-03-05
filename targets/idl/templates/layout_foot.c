@@ -1,8 +1,8 @@
-    cocos2d::$current_class.target_class_name* $current_class.target_class_name::getCocos2dImpl() {
-        return (cocos2d::$current_class.target_class_name*)m_cocos2d_impl;
+    $current_class.namespaced_class_name* $current_class.target_class_name::getCocos2dImpl() {
+        return ($current_class.namespaced_class_name*)m_cocos2d_impl;
     }
 
-    void $current_class.target_class_name::setCocos2dImpl(cocos2d::$current_class.target_class_name* impl) {
+    void $current_class.target_class_name::setCocos2dImpl($current_class.namespaced_class_name* impl) {
         ## if (m_cocos2d_impl != NULL) {
         ##    m_cocos2d_impl->release();
         ## }
@@ -35,7 +35,7 @@
     {
         RefPtrWillBeRawPtr<$(current_class.target_class_name)> ret = adoptRefWillBeNoop(new $(current_class.target_class_name)());
         #if not $current_class.is_abstract
-        cocos2d::${current_class.target_class_name}* impl = new cocos2d::${current_class.target_class_name}();
+        ${current_class.namespaced_class_name}* impl = new ${current_class.namespaced_class_name}();
         ret->setCocos2dImpl(impl);
         #end if
         return ret.release();
