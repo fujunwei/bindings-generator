@@ -64,13 +64,13 @@ native_to_webcore_type_map = {
 
 native_to_idl_type_map = {
     "bool"                      : "boolean",
-    "int"                       : "short",
+    "int"                       : "long",
     "char"                      : "unsigned short",
     "char*"                     : "DOMString",
     "const char*"               : "DOMString",
     "GLchar*"                   : "DOMString",
     "const GLchar*"             : "DOMString",
-    "unsigned int"              : "unsigned short",
+    "unsigned int"              : "unsigned long",
     "_ccTexParams"              : "ccTexParams",
     "ccTMXTileFlags_"           : "unsigned short",
     "_ccColor4F"                : "ccColor4F",
