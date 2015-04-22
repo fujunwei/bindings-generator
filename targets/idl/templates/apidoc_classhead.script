@@ -1,4 +1,5 @@
 [
+    Conditional=COCOS2D,
     WillBeGarbageCollected,
     Constructor,
     NoInterfaceObject
