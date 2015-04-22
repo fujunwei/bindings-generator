@@ -8,9 +8,7 @@
 #for $func in $implementations
 #set $arguments = $func.arguments
 #if $registration_name == "create"
-    #if len($arguments) == 0
-    #continue
-    #end if
+    #set $registration_name = "createInternal"
 #end if
 #set $ret_type = $func.ret_type
 #set arglist = ''

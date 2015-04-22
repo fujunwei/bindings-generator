@@ -7,6 +7,9 @@
 #end if
 #for $func in $implementations
 #set $arguments = $func.arguments
+#if $registration_name == "create"
+    #set $registration_name = "createInternal"
+#end if
 #set $ret_type = $func.ret_type
 #set arglist = ''
     #set $length = len($arguments)

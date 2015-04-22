@@ -8,9 +8,7 @@
 #for $func in $implementations
 #set $arguments = $func.arguments
 #if $registration_name == "create"
-    #if len($arguments) == 0
-    #continue
-    #end if
+    #set $registration_name = "createInternal"
 #end if
 #set $ret_type = $func.ret_type
 #set arglist = ''
@@ -107,7 +105,7 @@
     #set $prefix = $prefix + ', '
 #end if
 #end if
-    $ret_type_name ${signature_name}($prefix$arglist) {
+    $ret_type_name ${class_name}::${registration_name}($prefix$arglist) {
 $arg_wrapper
         #if $ret_type.name == "void"
         $namespaced_class_name::${func_name}($arg_wrapper_call);
