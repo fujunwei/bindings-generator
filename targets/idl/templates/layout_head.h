@@ -1,3 +1,8 @@
+// Copyright (c) 2014 The Chromium Authors. All rights reserved.
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 \#ifndef __$(current_class.target_class_name)_h__
 \#define __$(current_class.target_class_name)_h__
 
