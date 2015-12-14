@@ -1,0 +1,54 @@
+#if len($implementations) == 0
+    #set $func2 = $self
+    #set $func2.arguments = $arguments
+    #set $func2.ret_type = $ret_type
+    #set $func2.static = $static
+    $implementations.append($func2)
+#end if
+#for $func in $implementations
+#set $arguments = $func.arguments
+#if $registration_name == "create"
+    #set $registration_name = "createInternal"
+#end if
+#set skip = False
+#set $ret_type = $func.ret_type
+#set arglist = ''
+    #set $length = len($arguments)
+    #set $index = 0
+    #for $arg in $arguments
+        #set $argname = $native_type_to_idl($arg)
+        #if 'Uint8Array' in $argname
+            #set $skip = True
+            #break
+        #end if
+        #if $generator.in_listed_extend_classed($argname)
+            #set $argname = 'any'
+        #end if
+        #set $arglist = $arglist + $argname
+        #set $arglist = $arglist + ' arg' + str(index)
+        #if $index < $length - 1 
+            #set $arglist = $arglist + ', '
+        #end if
+        #set $index = $index + 1
+    #end for
+#set $retname = $native_type_to_idl($ret_type)
+#if 'Uint8Array' in $retname
+    #set $skip = True
+#end if
+#if $skip == False
+#set $prefix = ''
+#if $generator.in_listed_idl_classes($retname)
+    #if $ret_type.is_pointer and $generator.extend_from_ccobj($retname)
+    #set $retname = 'any'
+    #end if
+#end if
+#if $retname == 'any'
+    #set $prefix = '[CallWith=ScriptState] '
+#end if
+#if $func.static
+    $prefix static $retname ${registration_name}($arglist);
+#else
+    $prefix$retname ${registration_name}($arglist);
+#end if
+#end if
+#end for

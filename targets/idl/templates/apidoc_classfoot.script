@@ -1,0 +1,5 @@
+#set generator = $current_class.generator
+#if $generator.in_listed_extend_classed($current_class.class_name) and not $current_class.is_abstract
+    [Custom] void ctor();
+#end if
+};
